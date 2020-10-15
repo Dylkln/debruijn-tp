@@ -16,13 +16,14 @@
 import argparse
 import os
 import sys
-import networkx as nx
-import matplotlib
-from operator import itemgetter
 import random
-random.seed(9001)
-from random import randint
 import statistics
+import networkx as nx
+import matplotlib.pyplot as plt
+from operator import itemgetter
+from random import randint
+random.seed(9001)
+
 
 __author__ = "Dylan KLEIN"
 __copyright__ = "Universite Paris Diderot"
@@ -65,6 +66,103 @@ def get_arguments():
     return parser.parse_args()
 
 
+def read_fastq(fastq_file : str):
+
+    with open(fastq_file, "r") as filin:
+        for _ in filin:
+            yield next(filin).strip()
+            next(filin)
+            next(filin)
+
+def cut_kmer(sequence : str, k_mer : int):
+    
+    for i in range(len(sequence) - k_mer + 1):
+        yield sequence[i : i + k_mer]
+
+
+def build_kmer_dict(fastq_file : str, k_mer : int):
+
+    k_mer_dict = {}
+    
+    for sequence in read_fastq(fastq_file):
+        for kmer in cut_kmer(sequence, k_mer):
+            if kmer not in k_mer_dict.keys():
+                k_mer_dict[kmer] = 0
+            k_mer_dict[kmer] += 1
+
+
+    return k_mer_dict
+
+
+def build_graph(k_mer_dict : dict):
+    
+    graph = nx.DiGraph()
+    
+    for k_mer, weight in k_mer_dict.items():
+        graph.add_edge(k_mer[:-1], k_mer[1:], weight = weight)
+
+    plt.subplot(222)
+
+    nx.draw(graph, with_labels = True)
+    plt.savefig("graph")
+
+    return graph
+
+def get_starting_nodes(graph):
+    pass
+
+
+def get_sink_nodes(graph):
+    pass
+
+
+def get_contigs(graph, nodes_in : list, nodes_out : list):
+    pass
+
+
+def save_contigs(tuple_list : list, file_name : str):
+    pass
+
+
+def fill(text, width=80):
+"""Split text with a line return to respect fasta format"""
+
+return os.linesep.join(text[i:i+width] for i in range(0, len(text), width))
+
+
+def std(valeur : int):
+    pass
+
+
+def path_average_weight(graph, path):
+    pass
+
+
+def remove_paths(graph, path_list : list):
+    pass
+
+
+def select_best_path(graph, path_list : list, path_length : list,
+                        medium_path_weight : list):
+    pass
+
+
+def solve_bubble(graph, ancestral_node, descendant_node):
+    pass
+
+
+def simplify_bubbles(graph):
+    pass
+
+
+def solve_entry_tips(graph, in_node_list : list):
+    pass
+
+
+def solve_out_tips(graph, out_node_list : list):
+    pass    
+
+
 #==============================================================
 # Main program
 #==============================================================
@@ -73,7 +171,11 @@ def main():
     Main program function
     """
     # Get arguments
+
     args = get_arguments()
+    k_mer_dict = build_kmer_dict(args.fastq_file, args.kmer_size)
+    graph = build_graph(k_mer_dict)
+
 
 if __name__ == '__main__':
     main()
