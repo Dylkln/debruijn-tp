@@ -103,31 +103,62 @@ def build_graph(k_mer_dict : dict):
 
     plt.subplot(222)
 
-    nx.draw(graph, with_labels = True)
+    nx.draw(graph, with_labels = False)
     plt.savefig("graph")
 
     return graph
 
 def get_starting_nodes(graph):
-    pass
+    
+    nodes = list(graph.nodes())
+    nodes_in = []
+    
+    for node in nodes:
+        if not list(graph.predecessors(node)):
+            nodes_in.append(node)
+
+    return nodes_in
 
 
 def get_sink_nodes(graph):
-    pass
+    
+    nodes = list(graph.nodes())
+    nodes_out = []
+    
+    for node in nodes:
+        if not list(graph.successors(node)):
+            nodes_out.append(node)
+
+    return nodes_out
 
 
 def get_contigs(graph, nodes_in : list, nodes_out : list):
-    pass
+    
+    contigs = []
+    for node_in in nodes_in:
+        for node_out in nodes_out:
+            if list(nx.all_simple_paths(graph, node_in, node_out)):
+                l = list(nx.all_simple_paths(graph, node_in, node_out))
+                contig = l[0][0]
+                for i in range(1, len(l[0])):
+                    contig += l[0][i][-1]
+                contigs.append((contig, len(contigs)))
 
+    return contigs
 
 def save_contigs(tuple_list : list, file_name : str):
-    pass
+    with open(file_name, "w") as filout:
+        for i, elt in enumerate(tuple_list):
+            out = "> contig_" + str(i + 1) + " length = " + str(len(elt[0])) + "\n"
+            filout.write(out)
+            filout.write(fill(elt[0]))
+            filout.write("\n")
 
 
 def fill(text, width=80):
-"""Split text with a line return to respect fasta format"""
+    """Split text with a line return to respect fasta format"""
 
-return os.linesep.join(text[i:i+width] for i in range(0, len(text), width))
+    return os.linesep.join(text[i:i+width] for i in range(0, len(text), width))
 
 
 def std(valeur : int):
@@ -175,6 +206,11 @@ def main():
     args = get_arguments()
     k_mer_dict = build_kmer_dict(args.fastq_file, args.kmer_size)
     graph = build_graph(k_mer_dict)
+
+    contigs = get_contigs(graph, get_starting_nodes(graph), get_sink_nodes(graph))
+
+    save_contigs(contigs, args.output_file)
+
 
 
 if __name__ == '__main__':
