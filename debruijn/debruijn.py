@@ -76,6 +76,7 @@ def read_fastq(fastq_file : str):
             next(filin)
             next(filin)
 
+
 def cut_kmer(sequence : str, k_mer : int):
     """
     takes a sequence and a k_mer size and return a k_mer yield
@@ -95,7 +96,6 @@ def build_kmer_dict(fastq_file : str, k_mer : int):
                 k_mer_dict[kmer] = 0
             k_mer_dict[kmer] += 1
 
-
     return k_mer_dict
 
 
@@ -110,6 +110,7 @@ def build_graph(k_mer_dict : dict):
 
     return bruijn_graph
 
+
 def get_starting_nodes(bruijn_graph : nx.DiGraph):
     """
     Take a graph and return a list of starting nodes
@@ -119,6 +120,7 @@ def get_starting_nodes(bruijn_graph : nx.DiGraph):
 
     for node in nodes:
         pred_len = len(list(bruijn_graph.predecessors(node)))
+
         if pred_len == 0:
             nodes_in.append(node)
 
@@ -134,6 +136,7 @@ def get_sink_nodes(bruijn_graph : nx.DiGraph):
 
     for node in nodes:
         succ_len = len(list(bruijn_graph.successors(node)))
+
         if succ_len == 0:
             nodes_out.append(node)
 
@@ -144,22 +147,28 @@ def get_contigs(bruijn_graph : nx.DiGraph, nodes_in : list, nodes_out : list):
     """
     Get contigs from the files and the starting and sinkng nodes
     """
+    
     contigs = []
+
     for node_in in nodes_in:
         for node_out in nodes_out:
+
             if list(nx.all_simple_paths(bruijn_graph, node_in, node_out)):
                 liste = list(nx.all_simple_paths(bruijn_graph, node_in, node_out))
                 contig = liste[0][0]
+
                 for kmer in range(1, len(liste[0])):
                     contig += liste[0][kmer][-1]
                 contigs.append((contig, len(contigs)))
 
     return contigs
 
+
 def save_contigs(tuple_list : list, file_name : str):
     """
     Save the contigs in a fasta file
     """
+
     with open(file_name, "w") as filout:
         for index, contig in enumerate(tuple_list):
             filout.write("> contig_" + str(index + 1) + " len = " + str(contig[1]) + "\n")
@@ -179,13 +188,17 @@ def std(value_list : list):
     """
     Return the standard deviation of an input list
     """
+
     standard_deviation = statistics.stdev(value_list)
+
     return standard_deviation
+
 
 def path_average_weight(bruijn_graph : nx.DiGraph, path : str):
     """
     Return the average weight of a path
     """
+
     tot_weight = 0
     path_length = len(path) - 1
 
@@ -198,7 +211,6 @@ def path_average_weight(bruijn_graph : nx.DiGraph, path : str):
     return av_weight
 
 
-
 def remove_paths(bruijn_graph : nx.DiGraph, path_list : list,
     delete_entry_node : bool,
     delete_sink_node : bool):
@@ -206,6 +218,7 @@ def remove_paths(bruijn_graph : nx.DiGraph, path_list : list,
     Remove paths from the graph.
     Delete entry nodes and/or sink nodes when set to True
     """
+
     for path in path_list:
         bruijn_graph.remove_nodes_from(path[1:-1])
 
@@ -217,12 +230,14 @@ def remove_paths(bruijn_graph : nx.DiGraph, path_list : list,
 
     return bruijn_graph
 
+
 def select_best_path(bruijn_graph : nx.DiGraph, path_list : list,
     path_length : list, medium_path_weight : list, delete_entry_node : bool,
     delete_sink_node : bool):
     """
     Select the best path from the graph
     """
+
     weight_max = max(medium_path_weight)
     length_max = max(path_length)
 
@@ -271,6 +286,7 @@ def solve_bubble(bruijn_graph : nx.DiGraph, ancestral_node : str, descendant_nod
     """
     Remove a bubble from a graph
     """
+
     bubble_path = []
     bubble_length = []
     bubble_weight = []
@@ -290,6 +306,7 @@ def simplify_bubbles(bruijn_graph : nx.DiGraph):
     """
     Remove all bubbles from a graph
     """
+
     nodes_to_delete = []
 
     for descendant_node in bruijn_graph:
@@ -309,6 +326,7 @@ def solve_entry_tips(bruijn_graph : nx.DiGraph, in_node_list : list):
     """
     Remove all unwanted starting nodes
     """
+
     path_list = []
     path_length = []
     path_weight = []
@@ -318,13 +336,12 @@ def solve_entry_tips(bruijn_graph : nx.DiGraph, in_node_list : list):
         des_node = list(bruijn_graph.successors(node))[0]
         anc_node = list(bruijn_graph.predecessors(des_node))
         length_succ = len(list(bruijn_graph.successors(des_node)))
-        while len(anc_node) == 1 and length_succ:
 
+        while len(anc_node) == 1 and length_succ:
             des_node = list(bruijn_graph.successors(des_node))[0]
             anc_node = list(bruijn_graph.predecessors(des_node))
 
         if len(anc_node) > 1:
-
             for path in nx.all_simple_paths(bruijn_graph, node, des_node):
                 path_list.append(path)
                 path_length.append(path)
@@ -348,13 +365,12 @@ def solve_out_tips(bruijn_graph : nx.DiGraph, out_node_list : list):
         anc_node = list(bruijn_graph.predecessors(node))[0]
         des_node = list(bruijn_graph.successors(anc_node))
         length_anc = len(list(bruijn_graph.predecessors(anc_node)))
-        while len(des_node) == 1 and length_anc:
 
+        while len(des_node) == 1 and length_anc:
             anc_node = list(bruijn_graph.predecessors(anc_node))[0]
             des_node = list(bruijn_graph.successors(anc_node))
 
         if len(des_node) > 1:
-
             for path in nx.all_simple_paths(bruijn_graph, anc_node, node):
                 path_list.append(path)
                 path_length.append(path)
