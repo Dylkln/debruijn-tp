@@ -38,6 +38,7 @@ def isfile(path):
     :Parameters:
         path: Path to the file
     """
+
     if not os.path.isfile(path):
         if os.path.isdir(path):
             msg = "{0} is a directory".format(path)
@@ -52,6 +53,7 @@ def get_arguments():
     Retrieves the arguments of the program.
     Returns: An object that contains the arguments
     """
+
     # Parsing arguments
     parser = argparse.ArgumentParser(description=__doc__, usage=
                                      "{0} -h"
@@ -70,6 +72,7 @@ def read_fastq(fastq_file : str):
     """
     Takes file and return sequences yield
     """
+
     with open(fastq_file, "r") as filin:
         for _ in filin:
             yield next(filin).strip()
@@ -81,6 +84,7 @@ def cut_kmer(sequence : str, k_mer : int):
     """
     takes a sequence and a k_mer size and return a k_mer yield
     """
+
     for i in range(len(sequence) - k_mer + 1):
         yield sequence[i : i + k_mer]
 
@@ -89,7 +93,9 @@ def build_kmer_dict(fastq_file : str, k_mer : int):
     """
     takes a fastq file and a k_mer size and return a k_mer dictionnary
     """
+
     k_mer_dict = {}
+
     for sequence in read_fastq(fastq_file):
         for kmer in cut_kmer(sequence, k_mer):
             if kmer not in k_mer_dict:
@@ -103,6 +109,7 @@ def build_graph(k_mer_dict : dict):
     """
     Build De Bruijn Graph based on k_mer dictionnary
     """
+
     bruijn_graph = nx.DiGraph()
 
     for k_mer, weight in k_mer_dict.items():
@@ -115,6 +122,7 @@ def get_starting_nodes(bruijn_graph : nx.DiGraph):
     """
     Take a graph and return a list of starting nodes
     """
+
     nodes = list(bruijn_graph.nodes())
     nodes_in = []
 
@@ -131,6 +139,7 @@ def get_sink_nodes(bruijn_graph : nx.DiGraph):
     """
     Take a graph and return a list of sinking nodes
     """
+
     nodes = list(bruijn_graph.nodes())
     nodes_out = []
 
